@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>StreamBox</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <button class="icon-btn" id="menuBtn" aria-label="Open menu">☰</button>
+    <a class="brand" href="#"><span class="play">▶</span> StreamBox</a>
+    <form class="search" id="searchForm">
+      <input id="searchInput" type="search" placeholder="Search" aria-label="Search videos">
+      <button aria-label="Search">⌕</button>
+    </form>
+    <button class="icon-btn" id="themeBtn" aria-label="Toggle dark mode">☾</button>
+    <button class="avatar">R</button>
+  </header>
+
+  <aside class="sidebar" id="sidebar">
+    <a class="active" href="#">⌂ <span>Home</span></a>
+    <a href="#">♧ <span>Explore</span></a>
+    <a href="#">▣ <span>Subscriptions</span></a>
+    <hr>
+    <a href="#">▸ <span>Library</span></a>
+    <a href="#">◷ <span>History</span></a>
+    <hr>
+    <p class="small">A simple video homepage made with HTML, CSS, and JavaScript.</p>
+  </aside>
+
+  <main class="content">
+    <nav class="chips" aria-label="Categories">
+      <button class="selected">All</button><button>Music</button><button>Gaming</button><button>Live</button><button>Learning</button><button>News</button>
+    </nav>
+    <section class="video-grid" id="videoGrid" aria-live="polite"></section>
+  </main>
+  <script src="script.js"></script>
+</body>
+</html>
