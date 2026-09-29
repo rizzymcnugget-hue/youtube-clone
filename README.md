@@ -1,9 +1,15 @@
-# StreamBox
+# Wavebound Odyssey
 
-A simple, responsive YouTube-inspired video homepage built with plain HTML, CSS, and JavaScript. It includes search, category buttons, a responsive sidebar, dark mode, and locally defined sample video cards.
+A single-page fishing adventure website prototype inspired by relaxing Roblox-style fishing games, built in HTML/CSS/JavaScript.
 
-## Run it
+Features:
+- Open world with islands and travel
+- Fishing minigame with hold/release timing
+- Rods, bait, and boat progression
+- Weather and day/night cycle
+- Quests and economy
+- Fish collection and save system
 
-Open `index.html` in a browser. No build tools or external services are required.
+Open `index.html` in a browser to play.
 
-This project is an original interface mockup and does not include YouTube content, authentication, or a way to bypass network restrictions.
+This is a polished front-end prototype rather than a full online multiplayer backend.
