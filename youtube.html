@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YouTube</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg: #fff;
+      --bg2: #f9f9f9;
+      --text: #030303;
+      --text-secondary: #606060;
+      --border: #e5e5e5;
+      --red: #ff0000;
+    }
+    body.dark {
+      --bg: #0f0f0f;
+      --bg2: #181818;
+      --text: #f1f1f1;
+      --text-secondary: #aaa;
+      --border: #2d2d2d;
+    }
+    html, body { font-family: Arial, sans-serif; background: var(--bg); color: var(--text); }
+    button { cursor: pointer; border: none; background: none; color: inherit; font-family: inherit; }
+    input { background: transparent; color: inherit; font-family: inherit; border: none; }
+    
+    /* HEADER */
+    .header {
+      position: sticky; top: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between;
+      height: 64px; padding: 0 16px; background: var(--bg); border-bottom: 1px solid var(--border);
+    }
+    .header-left, .header-right { display: flex; align-items: center; gap: 12px; }
+    .logo { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 1.6rem; cursor: pointer; }
+    .logo-mark { background: var(--red); color: white; width: 26px; height: 18px; display: grid; place-items: center; border-radius: 4px; font-size: 11px; }
+    .menu-icon { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%; cursor: pointer; }
+    .menu-icon:hover { background: var(--bg2); }
+    .search-box { display: flex; align-items: center; flex: 1; max-width: 500px; height: 42px; border: 1px solid var(--border); border-radius: 20px; padding: 0 16px; background: var(--bg2); }
+    .search-box input { flex: 1; outline: none; font-size: 15px; }
+    .search-box input::placeholder { color: var(--text-secondary); }
+    .search-btn { width: 40px; height: 40px; display: grid; place-items: center; }
+    .icon-btn { width: 40px; height: 40px; display: grid; place-items: center; cursor: pointer; border-radius: 50%; }
+    .icon-btn:hover { background: var(--bg2); }
+    .profile-btn { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #667eea, #764ba2); color: white; display: grid; place-items: center; font-weight: 700; }
+    
+    /* SIDEBAR */
+    .sidebar { position: fixed; top: 64px; left: 0; width: 240px; height: calc(100vh - 64px); background: var(--bg); border-right: 1px solid var(--border); overflow-y: auto; transition: transform 0.3s; z-index: 90; }
+    .sidebar.hidden { transform: translateX(-100%); }
+    .sidebar-nav { padding: 12px 0; }
+    .nav-item { display: flex; align-items: center; gap: 15px; padding: 12px 24px; cursor: pointer; text-decoration: none; color: inherit; transition: 0.2s; }
+    .nav-item:hover { background: var(--bg2); }
+    .nav-item.active { background: var(--bg2); font-weight: 600; }
+    .nav-item svg { width: 24px; height: 24px; }
+    .sidebar-divider { border: none; border-top: 1px solid var(--border); margin: 8px 0; }
+    .sidebar-label { padding: 16px 24px 8px; font-size: 12px; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; }
+    
+    /* MAIN CONTAINER */
+    .container { margin-left: 240px; }
+    
+    /* PAGES */
+    .page { display: none; }
+    .page.active { display: block; }
+    
+    /* HOME PAGE */
+    .home-page { padding: 20px 28px; }
+    .chips { display: flex; gap: 12px; margin-bottom: 24px; overflow-x: auto; padding: 0 8px; }
+    .chip { padding: 8px 16px; border: 1px solid var(--border); border-radius: 16px; background: var(--bg2); cursor: pointer; white-space: nowrap; transition: 0.2s; }
+    .chip:hover { background: var(--border); }
+    .chip.active { background: var(--text); color: var(--bg); border: 1px solid var(--text); }
+    .videos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+    .video-item { cursor: pointer; }
+    .video-thumb { position: relative; background: #000; border-radius: 12px; overflow: hidden; padding-bottom: 56.25%; }
+    .video-thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .duration { position: absolute; right: 8px; bottom: 8px; background: rgba(0,0,0,0.8); color: white; padding: 4px 6px; border-radius: 2px; font-size: 12px; font-weight: 600; }
+    .video-info { padding: 12px 0; display: flex; gap: 12px; }
+    .channel-avatar { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; color: white; font-weight: 700; flex-shrink: 0; background: linear-gradient(135deg, #667eea, #764ba2); }
+    .video-details h3 { margin: 0 0 4px; font-size: 14px; font-weight: 600; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .video-details p { margin: 0; font-size: 12px; color: var(--text-secondary); }
+    
+    /* WATCH PAGE */
+    .watch-page { padding: 24px 28px; max-width: 1400px; margin: 0 auto; }
+    .player { width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 12px; margin-bottom: 20px; }
+    .video-header { background: var(--bg2); padding: 18px; border-radius: 12px; margin-bottom: 16px; }
+    .video-header h1 { margin: 0 0 12px; font-size: 1.8rem; }
+    .video-stats { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .stats-left { color: var(--text-secondary); font-size: 14px; }
+    .action-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+    .action-btn { padding: 8px 16px; border-radius: 20px; background: var(--border); cursor: pointer; transition: 0.2s; }
+    .action-btn:hover { background: var(--bg); }
+    .channel-header { background: var(--bg2); padding: 18px; border-radius: 12px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; }
+    .channel-info { display: flex; align-items: center; gap: 12px; }
+    .channel-avatar-big { width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; color: white; font-weight: 700; background: linear-gradient(135deg, #667eea, #764ba2); }
+    .channel-details h3 { margin: 0; font-size: 16px; font-weight: 600; }
+    .channel-details p { margin: 4px 0 0; color: var(--text-secondary); font-size: 12px; }
+    .subscribe-btn { background: var(--red); color: white; border-radius: 20px; padding: 10px 24px; font-weight: 600; cursor: pointer; }
+    .video-description { background: var(--bg2); padding: 18px; border-radius: 12px; line-height: 1.6; }
+    
+    /* SHORTS PAGE */
+    .shorts-page { height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+    .shorts-container { position: relative; width: 100%; height: 100vh; }
+    .short-video { position: absolute; inset: 0; display: none; width: 100%; height: 100%; }
+    .short-video.active { display: flex; }
+    .short-video video { width: 100%; height: 100%; object-fit: contain; background: #000; }
+    .shorts-sidebar { position: absolute; right: 20px; bottom: 100px; display: flex; flex-direction: column; gap: 16px; z-index: 50; }
+    .shorts-action { width: 50px; height: 50px; border-radius: 50%; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.3); cursor: pointer; display: grid; place-items: center; color: white; font-size: 24px; transition: 0.2s; }
+    .shorts-action:hover { background: rgba(0,0,0,0.5); }
+    .shorts-info { position: absolute; bottom: 20px; left: 20px; color: white; z-index: 50; max-width: 300px; }
+    .shorts-channel { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; cursor: pointer; }
+    .shorts-avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #667eea, #764ba2); display: grid; place-items: center; color: white; font-weight: 700; }
+    .shorts-title { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+    .shorts-nav { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); display: flex; gap: 12px; z-index: 50; }
+    .shorts-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.5); cursor: pointer; transition: 0.2s; }
+    .shorts-dot.active { background: white; }
+    
+    @media (max-width: 800px) {
+      .container { margin-left: 0; }
+      .sidebar { width: 100%; }
+      .sidebar.hidden { transform: translateX(-100%); }
+      .search-box { max-width: 200px; }
+      .logo-text { display: none; }
+      .videos-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+      .home-page { padding: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-left">
+    <button class="menu-icon" id="menuToggle">☰</button>
+    <div class="logo" id="logoHome">
+      <div class="logo-mark">▶</div>
+      <span class="logo-text">YouTube</span>
+    </div>
+  </div>
+  <div class="search-box">
+    <input type="text" id="searchInput" placeholder="Search">
+    <button class="search-btn">🔍</button>
+  </div>
+  <div class="header-right">
+    <button class="icon-btn">➕</button>
+    <button class="icon-btn">🔔</button>
+    <button class="icon-btn" id="themeToggle">☾</button>
+    <button class="profile-btn">R</button>
+  </div>
+</header>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <nav class="sidebar-nav">
+    <a class="nav-item active" data-page="home">🏠 Home</a>
+    <a class="nav-item" data-page="shorts">⚡ Shorts</a>
+    <a class="nav-item">📺 Subscriptions</a>
+  </nav>
+  <div class="sidebar-divider"></div>
+  <nav class="sidebar-nav">
+    <a class="nav-item">📚 Library</a>
+    <a class="nav-item">🕐 History</a>
+    <a class="nav-item">🎬 Your videos</a>
+    <a class="nav-item">⏱️ Watch Later</a>
+  </nav>
+  <div class="sidebar-divider"></div>
+  <div class="sidebar-label">Subscriptions</div>
+  <nav class="sidebar-nav">
+    <a class="nav-item">StudyBoost</a>
+    <a class="nav-item">GameZone</a>
+    <a class="nav-item">Chill Mix</a>
+    <a class="nav-item">MindLab</a>
+  </nav>
+</aside>
+
+<!-- MAIN CONTAINER -->
+<div class="container">
+  
+  <!-- HOME PAGE -->
+  <div class="page active" id="homePage">
+    <div class="home-page">
+      <div class="chips" id="chipsContainer">
+        <button class="chip active" data-filter="all">All</button>
+        <button class="chip" data-filter="music">Music</button>
+        <button class="chip" data-filter="gaming">Gaming</button>
+        <button class="chip" data-filter="study">Study</button>
+        <button class="chip" data-filter="tech">Technology</button>
+        <button class="chip" data-filter="news">News</button>
+      </div>
+      <div class="videos-grid" id="videosGrid"></div>
+    </div>
+  </div>
+  
+  <!-- SHORTS PAGE -->
+  <div class="page" id="shortsPage">
+    <div class="shorts-container" id="shortsContainer">
+      <div class="shorts-nav" id="shortsNav"></div>
+      <div class="shorts-sidebar" id="shortsSidebar"></div>
+    </div>
+  </div>
+  
+  <!-- WATCH PAGE -->
+  <div class="page" id="watchPage" style="display: none;">
+    <div class="watch-page">
+      <video class="player" id="player" controls></video>
+      <div class="video-header">
+        <h1 id="watchTitle">Video Title</h1>
+        <div class="video-stats">
+          <div class="stats-left" id="watchStats">0 views • 0 days ago</div>
+          <div class="action-buttons">
+            <button class="action-btn">👍 Like</button>
+            <button class="action-btn">👎 Dislike</button>
+            <button class="action-btn">↗️ Share</button>
+            <button class="action-btn">🔖 Save</button>
+          </div>
+        </div>
+      </div>
+      <div class="channel-header">
+        <div class="channel-info">
+          <div class="channel-avatar-big" id="watchAvatar">S</div>
+          <div class="channel-details">
+            <h3 id="watchChannel">Channel Name</h3>
+            <p id="watchSubs">0 subscribers</p>
+          </div>
+        </div>
+        <button class="subscribe-btn">Subscribe</button>
+      </div>
+      <div class="video-description" id="watchDesc">Video description goes here</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // DATA
+  const videos = [
+    { id: 1, title: 'How to Build a Better Study Routine', channel: 'StudyBoost', views: '1.2M', time: '2 days ago', duration: '8:42', type: 'study', url: 'https://www.w3schools.com/html/mov_bbb.mp4', short: 'https://www.w3schools.com/html/mov_bbb.mp4', thumb: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=320&h=180&fit=crop', desc: 'Learn practical study techniques, time management, and focus strategies.', avatar: 'S', color: '#2f80ed' },
+    { id: 2, title: 'Lo-fi Beats for Deep Focus', channel: 'Chill Mix', views: '845K', time: '1 week ago', duration: '1:04:22', type: 'music', url: 'https://www.w3schools.com/html/mov_bbb.mp4', short: 'https://www.w3schools.com/html/mov_bbb.mp4', thumb: 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=320&h=180&fit=crop', desc: 'Calm lo-fi instrumentals for studying, working, and relaxing.', avatar: 'C', color: '#7b2ff7' },
+    { id: 3, title: 'The Science Behind Motivation', channel: 'MindLab', views: '420K', time: '3 days ago', duration: '12:05', type: 'study', url: 'https://www.w3schools.com/html/mov_bbb.mp4', short: 'https://www.w3schools.com/html/mov_bbb.mp4', thumb: 'https://images.unsplash.com/photo-1495020689067-958852a7765e?w=320&h=180&fit=crop', desc: 'Understand what drives behavior and how to stay motivated.', avatar: 'M', color: '#f2994a' },
+    { id: 4, title: 'Beginner Web Development', channel: 'CodeCorner', views: '220K', time: '5 days ago', duration: '15:20', type: 'tech', url: 'https://www.w3schools.com/html/mov_bbb.mp4', short: 'https://www.w3schools.com/html/mov_bbb.mp4', thumb: 'https://images.unsplash.com/photo-1515879218367-8466d910aaa4?w=320&h=180&fit=crop', desc: 'Get started with HTML, CSS, and JavaScript basics.', avatar: 'C', color: '#219653' },
+    { id: 5, title: 'Amazing Wildlife Timelapse', channel: 'WildWorld', views: '3.8M', time: '2 weeks ago', duration: '10:14', type: 'news', url: 'https://www.w3schools.com/html/mov_bbb.mp4', short: 'https://www.w3schools.com/html/mov_bbb.mp4', thumb: 'https://images.unsplash.com/photo-1470770841072-f978cf4d019e?w=320&h=180&fit=crop', desc: 'Beautiful wildlife moments from around the world.', avatar: 'W', color: '#00b894' },
+    { id: 6, title: 'Easy Drawing Lessons', channel: 'CreativeDaily', views: '112K', time: '4 days ago', duration: '17:48', type: 'music', url: 'https://www.w3schools.com/html/mov_bbb.mp4', short: 'https://www.w3schools.com/html/mov_bbb.mp4', thumb: 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?w=320&h=180&fit=crop', desc: 'Learn basic sketching, shapes, and shading exercises.', avatar: 'D', color: '#e17055' },
+    { id: 7, title: 'How Electric Cars Work', channel: 'FutureExplained', views: '730K', time: '1 month ago', duration: '11:11', type: 'tech', url: 'https://www.w3schools.com/html/mov_bbb.mp4', short: 'https://www.w3schools.com/html/mov_bbb.mp4', thumb: 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=320&h=180&fit=crop', desc: 'Explore battery systems, motors, and energy transfer in EVs.', avatar: 'F', color: '#3d5afe' },
+    { id: 8, title: '5-Minute Healthy Snacks', channel: 'QuickKitchen', views: '907K', time: '6 days ago', duration: '5:03', type: 'news', url: 'https://www.w3schools.com/html/mov_bbb.mp4', short: 'https://www.w3schools.com/html/mov_bbb.mp4', thumb: 'https://images.unsplash.com/photo-1547592180-85f173990554?w=320&h=180&fit=crop', desc: 'Easy and tasty snacks that are healthy and fast.', avatar: 'Q', color: '#f6b93b' },
+    { id: 9, title: 'Advanced Gaming Tips', channel: 'GameZone', views: '560K', time: '3 days ago', duration: '22:15', type: 'gaming', url: 'https://www.w3schools.com/html/mov_bbb.mp4', short: 'https://www.w3schools.com/html/mov_bbb.mp4', thumb: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=320&h=180&fit=crop', desc: 'Learn strategies and movement tips to level up your gameplay.', avatar: 'G', color: '#d63031' }
+  ];
+
+  let currentFilter = 'all';
+  let currentShortIndex = 0;
+
+  function renderHome(filter = 'all') {
+    const filtered = filter === 'all' ? videos : videos.filter(v => v.type === filter);
+    const grid = document.getElementById('videosGrid');
+    grid.innerHTML = filtered.map(v => `
+      <div class="video-item" data-id="${v.id}">
+        <div class="video-thumb">
+          <img src="${v.thumb}" alt="${v.title}">
+          <div class="duration">${v.duration}</div>
+        </div>
+        <div class="video-info">
+          <div class="channel-avatar" style="background:${v.color};">${v.avatar}</div>
+          <div class="video-details">
+            <h3>${v.title}</h3>
+            <p>${v.channel}</p>
+            <p>${v.views} views • ${v.time}</p>
+          </div>
+        </div>
+      </div>
+    `).join('');
+    document.querySelectorAll('.video-item').forEach(item => {
+      item.addEventListener('click', () => playVideo(parseInt(item.dataset.id)));
+    });
+  }
+
+  function renderShorts() {
+    const container = document.getElementById('shortsContainer');
+    const nav = document.getElementById('shortsNav');
+    const sidebar = document.getElementById('shortsSidebar');
+    
+    container.innerHTML = videos.map((v, i) => `
+      <div class="short-video" data-index="${i}">
+        <video src="${v.short}" playsinline></video>
+      </div>
+    `).join('');
+    
+    nav.innerHTML = videos.map((_, i) => `<div class="shorts-dot${i === 0 ? ' active' : ''}"></div>`).join('');
+    sidebar.innerHTML = `
+      <button class="shorts-action">👍</button>
+      <button class="shorts-action">👎</button>
+      <button class="shorts-action">💬</button>
+      <button class="shorts-action">↗️</button>
+      <button class="shorts-action">⋯</button>
+    `;
+    
+    updateShort(0);
+    attachShortControls();
+  }
+
+  function updateShort(index) {
+    if (index < 0 || index >= videos.length) return;
+    document.querySelectorAll('.short-video').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.shorts-dot').forEach(d => d.classList.remove('active'));
+    document.querySelector(`[data-index="${index}"]`).classList.add('active');
+    document.querySelector(`.shorts-dot:nth-child(${index + 1})`).classList.add('active');
+    currentShortIndex = index;
+  }
+
+  function attachShortControls() {
+    document.querySelectorAll('.shorts-dot').forEach((dot, i) => {
+      dot.addEventListener('click', () => updateShort(i));
+    });
+    document.addEventListener('keydown', (e) => {
+      if (document.getElementById('shortsPage').style.display !== 'block') return;
+      if (e.key === 'ArrowUp') updateShort(currentShortIndex - 1);
+      if (e.key === 'ArrowDown') updateShort(currentShortIndex + 1);
+    });
+  }
+
+  function playVideo(id) {
+    const v = videos.find(x => x.id === id);
+    if (!v) return;
+    document.getElementById('watchTitle').textContent = v.title;
+    document.getElementById('watchStats').textContent = `${v.views} views • ${v.time}`;
+    document.getElementById('watchChannel').textContent = v.channel;
+    document.getElementById('watchSubs').textContent = `${Math.floor(Math.random()*8+1)}.${Math.floor(Math.random()*9)}M subscribers`;
+    document.getElementById('watchDesc').textContent = v.desc;
+    document.getElementById('watchAvatar').textContent = v.avatar;
+    document.getElementById('watchAvatar').style.background = v.color;
+    document.getElementById('player').src = v.url;
+    
+    showPage('watchPage');
+    window.scrollTo(0, 0);
+  }
+
+  function showPage(id) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    if (id === 'homePage') {
+      document.getElementById('shortsPage').style.display = 'none';
+      document.getElementById('watchPage').style.display = 'none';
+    } else if (id === 'shortsPage') {
+      document.getElementById('shortsPage').style.display = 'block';
+      renderShorts();
+    } else if (id === 'watchPage') {
+      document.getElementById('watchPage').style.display = 'block';
+    }
+  }
+
+  // EVENT LISTENERS
+  document.getElementById('menuToggle').addEventListener('click', () => {
+    document.getElementById('sidebar').classList.toggle('hidden');
+  });
+
+  document.getElementById('logoHome').addEventListener('click', () => showPage('homePage'));
+
+  document.querySelectorAll('[data-page]').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.preventDefault();
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      el.classList.add('active');
+      showPage(el.dataset.page + 'Page');
+    });
+  });
+
+  document.querySelectorAll('.chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      currentFilter = chip.dataset.filter;
+      renderHome(currentFilter);
+    });
+  });
+
+  document.getElementById('themeToggle').addEventListener('click', () => {
+    document.body.classList.toggle('dark');
+    const btn = document.getElementById('themeToggle');
+    btn.textContent = document.body.classList.contains('dark') ? '☀️' : '☾';
+  });
+
+  renderHome();
+</script>
+
+</body>
+</html>
